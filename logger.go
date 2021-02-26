@@ -141,6 +141,18 @@ func (l *Logger) IsEnabledFor(level Level) bool {
 }
 
 func (l *Logger) log(lvl Level, format *string, args ...interface{}) {
+	if defaultNotifier != nil && lvl <= defaultNotifyLevel {
+		go func() {
+			var msg string
+			if format == nil {
+				msg = fmt.Sprint(args...)
+			} else {
+				msg = fmt.Sprintf(*format, args...)
+			}
+			defaultNotifier.Send(lvl.String(), msg)
+		}()
+	}
+
 	if !l.IsEnabledFor(lvl) {
 		return
 	}
