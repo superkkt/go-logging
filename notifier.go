@@ -8,13 +8,11 @@
 package logging
 
 var defaultNotifier Notifier
-var defaultNotifyLevel Level
 
 type Notifier interface {
-	Send(title, body string) error
+	Notify(level Level, msg string)
 }
 
-func SetNotifier(notifier Notifier, level Level) {
+func SetNotifier(notifier Notifier) {
 	defaultNotifier = notifier
-	defaultNotifyLevel = level
 }

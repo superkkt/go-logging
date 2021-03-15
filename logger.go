@@ -141,20 +141,8 @@ func (l *Logger) IsEnabledFor(level Level) bool {
 }
 
 func (l *Logger) log(lvl Level, format *string, args ...interface{}) {
-	if defaultNotifier != nil && lvl <= defaultNotifyLevel {
-		msg := fmt.Sprintf("%v: ", lvl.String())
-		if format == nil {
-			msg += fmt.Sprint(args...)
-		} else {
-			msg += fmt.Sprintf(*format, args...)
-		}
-
-		// CRITICAL errors may terminate this process before it sends the notification.
-		if lvl == CRITICAL {
-			defaultNotifier.Send(lvl.String(), msg)
-		} else {
-			go defaultNotifier.Send(lvl.String(), msg)
-		}
+	if defaultNotifier != nil {
+		l.notify(lvl, format, args...)
 	}
 
 	if !l.IsEnabledFor(lvl) {
@@ -184,6 +172,17 @@ func (l *Logger) log(lvl Level, format *string, args ...interface{}) {
 	}
 
 	defaultBackend.Log(lvl, 2+l.ExtraCalldepth, record)
+}
+
+func (l *Logger) notify(level Level, format *string, args ...interface{}) {
+	var msg string
+	if format == nil {
+		msg = fmt.Sprint(args...)
+	} else {
+		msg = fmt.Sprintf(*format, args...)
+	}
+
+	defaultNotifier.Notify(level, msg)
 }
 
 // Fatal is equivalent to l.Critical(fmt.Sprint()) followed by a call to os.Exit(1).
